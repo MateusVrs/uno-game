@@ -1,42 +1,31 @@
-typedef enum { red, yellow, green, blue } Color;
-typedef enum { number, reverse, draw, skip, wild } Type;
+typedef enum { red=0, yellow, green, blue, colored } Color;
+typedef enum { number=0, skip, reverse, draw, wild } Type;
 typedef enum { zero=0, one, two, three, four, five, six, seven, eigth, nine } Number;
 
 enum Constants {
     cardsInHand = 7,
+    maxCardsInHand = 108, //maximum number of cards
     cardsInDeck = 108,
     normalCardsNumber = 76,
     wildCardsNumber = 32,
     colorNumber = 4,
     numberNumber = 10,
-    ownerNameLen = 25,
+    wildNumber = 4,
 };
 
 typedef struct {
     Color color;
     Type type;
     Number number;
-} NormalCard;
-
-typedef struct {
-    Color color;
-    Type type;
-    Number drawNumber;
-} WildCard;
+} Card;
 
 typedef struct{
-    NormalCard* normalCards[cardsInHand];
-    WildCard* wildCard[cardsInHand];
-} pCards;
-
-typedef struct{
-    NormalCard normalCards[normalCardsNumber];
-    WildCard wildCard[wildCardsNumber];
+    Card ordered[cardsInDeck];
+    Card* shuffled[cardsInDeck];
     int numberOfCards;
 } Deck;
 
 typedef struct{
-    char ownerName[ownerNameLen];
     int numberOfCards;
-    pCards* cards;
+    Card* cards[maxCardsInHand];
 } Hand;

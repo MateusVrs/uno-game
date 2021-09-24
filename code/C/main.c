@@ -2,17 +2,27 @@
 #include <stdlib.h>
 #include "funcs.c"
 
+#define N_PLAYERS 3
+Hand players[N_PLAYERS];
+Hand* pPlayers[N_PLAYERS];
+
 int main() {
-    Deck myDeck;
-    Deck* pMyDeck = &myDeck;
-    initializeDeck(pMyDeck);
-    for (size_t i = 0; i < normalCardsNumber; i++)
-    {
-        if (i % 4 == 0 && i != 0)
-            printf("\n");
-        printNormalCard(&(pMyDeck->normalCards[i]));
+    Deck deck;
+    Deck* pDeck = &deck;
+
+    initializeDeck(pDeck);
+    shuffleDeck(pDeck);
+
+    for (size_t i = 0; i < N_PLAYERS; i++) {
+        pPlayers[i] = &(players[i]);
+        initializeHand(pPlayers[i]);
     }
-    return 0;
+    initializePlayersHand(pDeck, pPlayers, N_PLAYERS);
+    for (size_t i = 0; i < N_PLAYERS; i++)
+    {
+        printHand(pPlayers[i], i + 1);
+        printf("\n");
+    }
 }
 
 // gcc -shared -o libmain.dll -fPIC main.c
