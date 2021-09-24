@@ -1,2 +1,2 @@
-from libmain import libmain
+from libmain import mainc
 
