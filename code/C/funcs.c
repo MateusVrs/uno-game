@@ -4,7 +4,16 @@
 #include <time.h>
 #include "structs.h"
 
-// ---- Card ----
+int N_PLAYERS = 2;
+GameType GAME_TYPE = people;
+
+Deck deck;
+Deck* pDeck = &deck;
+
+Hand players[maxNumberOfHands];
+Hand* pPlayers[maxNumberOfHands];
+
+// ---- CARD ----
 void initializeCard(Card* pCard, Color color, Number number, Type type) {
     pCard->color = color;
     pCard->number = number;
@@ -51,16 +60,33 @@ void printCard(Card* pCard) {
     printf("%s", strPrint);
 }
 
-// ---- Deck ----
+// --- Card gets ---
+int getCardColor(int ownerIndex, int cardIndex) {
+    return pPlayers[ownerIndex]->cards[cardIndex]->color;
+}
+
+int getCardType(int ownerIndex, int cardIndex) {
+    return pPlayers[ownerIndex]->cards[cardIndex]->type;
+}
+
+int getCardNumber(int ownerIndex, int cardIndex) {
+    return pPlayers[ownerIndex]->cards[cardIndex]->number;
+}
+
+int getNumberOfCardsInHand(int ownerIndex) {
+    return pPlayers[ownerIndex]->numberOfCards;
+}
+
+// ---- DECK ----
 void initializeDeck(Deck* pDeck) {
     Card* pCard;
     int index = 0;
     // Normal Cards
-    for (size_t i = 0; i < 2; i++)
+    for (int i = 0; i < 2; i++)
     {
-        for (size_t num = ((i == 1) ? one : zero); num < numberNumber; num++)
+        for (int num = ((i == 1) ? one : zero); num < numberNumber; num++)
         {
-            for (size_t color = red; color < colorNumber; color++)
+            for (int color = red; color < colorNumber; color++)
             {
                 pCard = &(pDeck->ordered[index]);
                 initializeCard(pCard, color, num, number);
@@ -71,11 +97,11 @@ void initializeDeck(Deck* pDeck) {
 
     // Wild Card
     Number cardNumber = zero;
-    for (size_t i = 0; i < 2; i++)
+    for (int i = 0; i < 2; i++)
     {
-        for (size_t wildType = skip; wildType < wildNumber + 1; wildType++)
+        for (int wildType = skip; wildType < wildNumber + 1; wildType++)
         {
-            for (size_t color = red; color < colorNumber; color++)
+            for (int color = red; color < colorNumber; color++)
             {
                 if (wildType == draw)
                     cardNumber = two;
@@ -91,8 +117,10 @@ void initializeDeck(Deck* pDeck) {
         }
     }
 
-    for (size_t i = 0; i < cardsInDeck; i++)
+    for (int i = 0; i < cardsInDeck; i++) {
         pDeck->shuffled[i] = &(pDeck->ordered[i]);
+        pDeck->inGame[i] = NULL;
+    }
 
     pDeck->numberOfCards = cardsInDeck;
 }
@@ -101,7 +129,7 @@ void shuffleDeck(Deck* pDeck) {
     srand(time(NULL));
     int randomIndex = rand() % (cardsInDeck);
     Card* pCard;
-    for (size_t i = 0; i < cardsInDeck; i++)
+    for (int i = 0; i < cardsInDeck; i++)
     {
         pCard = pDeck->shuffled[i];
         pDeck->shuffled[i] = pDeck->shuffled[randomIndex];
@@ -112,7 +140,7 @@ void shuffleDeck(Deck* pDeck) {
 }
 
 void printDeck(Deck* pDeck, bool isShuffled) {
-    for (size_t i = 0; i < cardsInDeck; i++)
+    for (int i = 0; i < pDeck->numberOfCards; i++)
     {
         if (i != 0 && i % 4 == 0)
             printf("\n");
@@ -125,6 +153,10 @@ void printDeck(Deck* pDeck, bool isShuffled) {
     }
 }
 
+void pyPrintDeck() {
+    printDeck(pDeck, true);
+}
+
 Card* getCardFromShuffled(Deck* pDeck) {
     Card* pCard;
     pCard = pDeck->shuffled[cardsInDeck - pDeck->numberOfCards];
@@ -132,10 +164,22 @@ Card* getCardFromShuffled(Deck* pDeck) {
     return pCard;
 }
 
-// ---- Hand ----
+int getCardColorFromDeck(int cardIndex) {
+    return pDeck->inGame[cardIndex]->color;
+}
+
+int getCardTypeFromDeck(int cardIndex) {
+    return pDeck->inGame[cardIndex]->type;
+}
+
+int getCardNumberFromDeck(int cardIndex) {
+    return pDeck->inGame[cardIndex]->number;
+}
+
+// ---- HAND ----
 void initializeHand(Hand* pHand) {
     pHand->numberOfCards = 0;
-    for (size_t i = 0; i < maxCardsInHand; i++)
+    for (int i = 0; i < maxCardsInHand; i++)
         pHand->cards[i] = NULL;
 }
 
@@ -152,28 +196,48 @@ Card* getCardFromHand(Hand* pHand, int index) {
     if (index >= pHand->numberOfCards) return NULL;
     pCard = pHand->cards[index];
     pHand->cards[index] = NULL;
-    for (size_t i = index + 1; i < pHand->numberOfCards; i++)
+    for (int i = index + 1; i < pHand->numberOfCards; i++)
         pHand->cards[i - 1] = pHand->cards[i];
     pHand->numberOfCards--;
     return pCard;
 }
 
-void printHand(Hand* pHand, int ownerIndex) {
+void printHand(int ownerIndex) {
     printf("%d%c Player's Cards:\n", ownerIndex, 248);
-    for (size_t i = 0; i < pHand->numberOfCards; i++)
+    for (int i = 0; i < pPlayers[ownerIndex]->numberOfCards; i++)
     {
-        printCard(pHand->cards[i]);
-        printf("\n");
+        printCard(pPlayers[ownerIndex]->cards[i]);
     }
 }
 
-// ---- Game ----
-void initializePlayersHand(Deck* pDeck, Hand* pPlayers[], int numberOfPlayers) {
-    for (size_t player = 0; player < numberOfPlayers; player++)
+// ---- GAME ----
+void gameSettings(int numberOfPlayers, GameType type) {
+    N_PLAYERS = numberOfPlayers;
+    GAME_TYPE = type;
+}
+
+void printSettings() {
+    printf("Number of players: %d\n", N_PLAYERS);
+    printf("Game Type: %d", GAME_TYPE);
+}
+
+void initializePlayersHand(Hand players[], Hand* pPlayers[]) {
+    for (int i = 0; i < N_PLAYERS; i++) {
+        pPlayers[i] = &(players[i]);
+        initializeHand(pPlayers[i]);
+    }
+}
+
+void initializePlayersGame(Deck* pDeck, Hand* pPlayers[]) {
+    for (int player = 0; player < N_PLAYERS; player++)
     {
-        for (size_t i = 0; i < cardsInHand; i++)
+        for (int i = 0; i < cardsInHand; i++)
         {
             addCardToHand(pPlayers[player], pDeck);
         }
-    }   
+    }
+}
+
+int getNumberOfPlayers() {
+    return N_PLAYERS;
 }
