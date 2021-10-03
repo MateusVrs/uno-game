@@ -7,7 +7,8 @@ int main() {
     shuffleDeck(pDeck);
     initializePlayersHand(players, pPlayers);
     initializePlayersGame(pDeck, pPlayers);
-    pDeck->inGame[0] = getCardFromShuffled(pDeck);
+    pDeck->inGame[pDeck->currentCard] = getCardFromShuffled(pDeck);
+    pDeck->currentCard++;
 }
 
 // gcc -shared -o libmain.dll -fPIC main.c

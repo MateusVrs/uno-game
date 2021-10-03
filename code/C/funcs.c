@@ -123,6 +123,7 @@ void initializeDeck(Deck* pDeck) {
     }
 
     pDeck->numberOfCards = cardsInDeck;
+    pDeck->currentCard = 0;
 }
 
 void shuffleDeck(Deck* pDeck) {
@@ -191,14 +192,14 @@ void addCardToHand(Hand* pHand, Deck* pDeck) {
     pHand->numberOfCards++;
 }
 
-Card* getCardFromHand(Hand* pHand, int index) {
+Card* getCardFromHand(int ownerIndex, int index) {
     Card* pCard;
-    if (index >= pHand->numberOfCards) return NULL;
-    pCard = pHand->cards[index];
-    pHand->cards[index] = NULL;
-    for (int i = index + 1; i < pHand->numberOfCards; i++)
-        pHand->cards[i - 1] = pHand->cards[i];
-    pHand->numberOfCards--;
+    if (index >= pPlayers[ownerIndex]->numberOfCards) return NULL;
+    pCard = pPlayers[ownerIndex]->cards[index];
+    pPlayers[ownerIndex]->cards[index] = NULL;
+    for (int i = index + 1; i < pPlayers[ownerIndex]->numberOfCards; i++)
+        pPlayers[ownerIndex]->cards[i - 1] = pPlayers[ownerIndex]->cards[i];
+    pPlayers[ownerIndex]->numberOfCards--;
     return pCard;
 }
 
@@ -236,6 +237,11 @@ void initializePlayersGame(Deck* pDeck, Hand* pPlayers[]) {
             addCardToHand(pPlayers[player], pDeck);
         }
     }
+}
+
+void swapCardFromHandToGame(int ownerIndex, int cardIndex){
+    pDeck->inGame[pDeck->currentCard] = getCardFromHand(ownerIndex, cardIndex);
+    pDeck->currentCard++;
 }
 
 int getNumberOfPlayers() {

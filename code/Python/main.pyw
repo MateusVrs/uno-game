@@ -1,3 +1,4 @@
+from os import name
 import tkinter as tk
 from tkinter.ttk import *
 from ctypes import *
@@ -110,10 +111,11 @@ class Home():
 class Game():
     def __init__(self):
         self.currentPlayer = 0
+        self.currentCardInGame = 0
         self.playersButtons = list()
         self.createDeckButton()
         self.createPlayerButtons()
-        self.initializeGame(0)
+        self.addCardToGame(self.currentCardInGame)
         pass
 
     def createDeckButton(self):
@@ -159,7 +161,6 @@ class Game():
 
         self.playerCards = tk.Toplevel(root)
         self.playerCards.attributes('-topmost', 'true')
-        self.playerCards.geometry(f'+{root.winfo_x()}+{root.winfo_y()}')
 
         labelPlayerNumber = tk.Label(self.playerCards, text=f"Player {ownerIndex + 1}")
         labelPlayerNumber.pack()
@@ -173,43 +174,73 @@ class Game():
             if eachCardColor == 'colored':
                 eachCardColor = 'white'
 
-            self.eachCardImg = Image.open(
-                f'images/{eachCardNumber}-{eachCardType}.png').resize((99, 150))
+            self.eachCardImg = Image.open(f'images/{eachCardNumber}-{eachCardType}.png').resize((99, 150))
             self.eachCardImg = ImageTk.PhotoImage(self.eachCardImg)
             self.cardsFromPerson.append(self.eachCardImg)
 
-            eachBtn = tk.Button(self.playerCards, background=eachCardColor, activebackground=eachCardColor,
-                                image=self.cardsFromPerson[cardIndex], borderwidth=-8, relief='flat')
+            eachBtn = tk.Button(self.playerCards, background=eachCardColor, activebackground=eachCardColor, image=self.cardsFromPerson[cardIndex], borderwidth=-8, relief='flat')
             eachBtn.pack(pady=5, padx=10, side='left')
-            eachBtn['command'] = partial(self.nextPlayer, ownerIndex, eachCardType, eachCardNumber, eachCardReferenceColor)
+            eachBtn['command'] = partial(self.nextPlayer, ownerIndex, cardIndex, eachCardType, eachCardNumber, eachCardReferenceColor)
 
-    def initializeGame(self, cardIndex):
+        self.playerCards.update()
+        self.playerCards.geometry(f'+{int(root.winfo_x() + root.winfo_width()/2 - self.playerCards.winfo_width()/2)}+{root.winfo_y()}')
+
+    def addCardToGame(self, cardIndex):
         self.frameCardsInGame = tk.Frame(root, name='frameCardsInGame')
         self.frameCardsInGame.pack(anchor='center')
 
-        eachCardType = CardType[mainc.getCardTypeFromDeck(cardIndex)]
-        eachCardNumber = mainc.getCardNumberFromDeck(cardIndex)
+        self.cardInTopType = CardType[mainc.getCardTypeFromDeck(cardIndex)]
+        self.cardInTopNumber = mainc.getCardNumberFromDeck(cardIndex)
 
-        cardInTopColor = f'{Colors[mainc.getCardColorFromDeck(cardIndex)]}'
-        if cardInTopColor == 'colored':
-            cardInTopColor = 'white'
+        self.cardInTopColor = f'{Colors[mainc.getCardColorFromDeck(cardIndex)]}'
+        self.cardInTopReferenceColor = f'{ReferenceColors[mainc.getCardColorFromDeck(cardIndex)]}'
+        if self.cardInTopColor == 'colored':
+            self.cardInTopColor = 'white'
 
-        self.cardInTopImg = Image.open(
-            f'images/{eachCardNumber}-{eachCardType}.png').resize((99, 150))
+        self.cardInTopImg = Image.open(f'images/{self.cardInTopNumber}-{self.cardInTopType}.png').resize((99, 150))
         self.cardInTopImg = ImageTk.PhotoImage(self.cardInTopImg)
 
-        self.labelCardInTop = tk.Label(self.frameCardsInGame, image=self.cardInTopImg,
-                                       name='cardInTop', background=cardInTopColor, borderwidth=-5)
+        self.labelCardInTop = tk.Label(self.frameCardsInGame, image=self.cardInTopImg, name='cardInTop', background=self.cardInTopColor, borderwidth=-5)
         self.labelCardInTop.pack(anchor='center')
+
+        self.currentCardInGame += 1
     
-    def nextPlayer(self, ownerIndex, eachCardType, eachCardNumber, eachCardReferenceColor):
-        self.currentPlayer += 1
-        if self.currentPlayer == mainc.getNumberOfPlayers():
-            self.currentPlayer = 0
-        self.playersButtons[ownerIndex]['state'] = 'disable'
-        self.playersButtons[self.currentPlayer]['state'] = 'normal'
-        print(eachCardNumber, eachCardReferenceColor, eachCardType)
-        self.playerCards.destroy()
+    def nextPlayer(self, ownerIndex, cardIndex, eachCardType, eachCardNumber, eachCardReferenceColor):
+        if eachCardReferenceColor in [self.cardInTopReferenceColor, 'colored']:
+            self.currentPlayer += 1
+            if self.currentPlayer == mainc.getNumberOfPlayers():
+                self.currentPlayer = 0
+            self.playersButtons[ownerIndex]['state'] = 'disable'
+            self.playersButtons[self.currentPlayer]['state'] = 'normal' if eachCardReferenceColor != 'colored' else 'disable'
+
+            self.playerCards.destroy()
+
+            mainc.swapCardFromHandToGame(ownerIndex, cardIndex)
+            self.frameCardsInGame.destroy()
+            self.addCardToGame(self.currentCardInGame)
+
+            if eachCardReferenceColor == 'colored':
+                self.chooseWildColor()
+        else:
+            print("choose a valid card")
+    
+    def chooseWildColor(self):
+        self.frameChooseColor = tk.Frame(root, name='frameChooseWildColor')
+        self.frameChooseColor.pack(side='bottom', pady=25)
+
+        labelTitle = tk.Label(self.frameChooseColor, text='Escolha a cor')
+        labelTitle.pack()
+
+        for color, refColor in zip(Colors[:-1], ReferenceColors[:-1]):
+            eachBtn = tk.Button(self.frameChooseColor, text=refColor, background=color, activebackground=color, width=15)
+            eachBtn.pack(side='left', padx=10)
+            eachBtn['command'] = partial(self.setcardInTopColor, color, refColor)
+    
+    def setcardInTopColor(self, newColor, newRefColor):
+        self.cardInTopColor = newColor
+        self.cardInTopReferenceColor = newRefColor 
+        print(newRefColor)
+        self.frameChooseColor.destroy()
 
 home = Home()
 root.mainloop()

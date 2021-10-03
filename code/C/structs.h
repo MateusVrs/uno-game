@@ -26,6 +26,7 @@ typedef struct{
     Card* shuffled[cardsInDeck];
     Card* inGame[cardsInDeck];
     int numberOfCards;
+    int currentCard;
 } Deck;
 
 typedef struct{
