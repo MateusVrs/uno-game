@@ -211,6 +211,11 @@ void printHand(int ownerIndex) {
     }
 }
 
+void drawCard(int ownerIndex) {
+    if (pDeck->numberOfCards != 0)
+        addCardToHand(pPlayers[ownerIndex], pDeck);
+}
+
 // ---- GAME ----
 void gameSettings(int numberOfPlayers, GameType type) {
     N_PLAYERS = numberOfPlayers;
