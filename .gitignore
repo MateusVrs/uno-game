@@ -1,3 +1,6 @@
-/tests
+/test
 /venv
+/code/C/main
+/code/C/libmain.dll
+/code/C/libmain.so
 /code/Python/__pycache__
