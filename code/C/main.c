@@ -12,3 +12,4 @@ int main() {
 }
 
 // gcc -shared -o libmain.dll -fPIC main.c
+// gcc -shared -o libmain.so -fPIC main.c
