@@ -127,18 +127,19 @@ void initializeDeck(Deck* pDeck) {
 }
 
 void shuffleDeck(Deck* pDeck) {
-    srand(time(NULL));
-    int randomIndex = rand() % (normalCardsNumber/colorNumber + 1);
-    randomIndex *= rand() % (colorNumber);
-    Card* pCard;
-    for (int i = 0; i < cardsInDeck; i++)
+    do
     {
-        pCard = pDeck->shuffled[i];
-        pDeck->shuffled[i] = pDeck->shuffled[randomIndex];
-        pDeck->shuffled[randomIndex] = pCard;
-        randomIndex = rand() % (cardsInDeck);
-    }
-
+        srand(time(NULL));
+        int randomIndex = rand() % (cardsInDeck);
+        Card* pCard;
+        for (int i = 0; i < cardsInDeck; i++)
+        {
+            pCard = pDeck->shuffled[i];
+            pDeck->shuffled[i] = pDeck->shuffled[randomIndex];
+            pDeck->shuffled[randomIndex] = pCard;
+            randomIndex = rand() % (cardsInDeck);
+        }
+    } while (pDeck->shuffled[0]->type != number);
 }
 
 void printDeck(Deck* deck , bool isShuffled) {

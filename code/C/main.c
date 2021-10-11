@@ -5,10 +5,10 @@
 int main() {
     initializeDeck(pDeck);
     shuffleDeck(pDeck);
-    initializePlayersHand(players, pPlayers);
-    initializePlayersGame(pDeck, pPlayers);
     pDeck->inGame[pDeck->currentCard] = getCardFromShuffled(pDeck);
     pDeck->currentCard++;
+    initializePlayersHand(players, pPlayers);
+    initializePlayersGame(pDeck, pPlayers);
 }
 
 // gcc -shared -o libmain.dll -fPIC main.c
