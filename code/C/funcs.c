@@ -55,7 +55,7 @@ void cardToString(Card* pCard, char strPrint[]) {
 }
 
 void printCard(Card* pCard) {
-    char strPrint[20];
+    char strPrint[50];
     cardToString(pCard, strPrint);
     printf("%s", strPrint);
 }
@@ -128,7 +128,8 @@ void initializeDeck(Deck* pDeck) {
 
 void shuffleDeck(Deck* pDeck) {
     srand(time(NULL));
-    int randomIndex = rand() % (cardsInDeck);
+    int randomIndex = rand() % (normalCardsNumber/colorNumber + 1);
+    randomIndex *= rand() % (colorNumber);
     Card* pCard;
     for (int i = 0; i < cardsInDeck; i++)
     {
@@ -140,22 +141,25 @@ void shuffleDeck(Deck* pDeck) {
 
 }
 
-void printDeck(Deck* pDeck, bool isShuffled) {
-    for (int i = 0; i < pDeck->numberOfCards; i++)
+void printDeck(Deck* deck , bool isShuffled) {
+    if (deck->numberOfCards == 0)
+        printf("Without cards");
+
+    for (int i = 0; i < deck->numberOfCards; i++)
     {
         if (i != 0 && i % 4 == 0)
             printf("\n");
 
         if (isShuffled == true)
-            printCard(pDeck->shuffled[i]);
+            printCard(deck->shuffled[i]);
         else
-            printCard(&(pDeck->ordered[i]));
+            printCard(&(deck->ordered[i]));
         printf(" | ");
     }
 }
 
-void pyPrintDeck() {
-    printDeck(pDeck, true);
+void pyPrintDeck(bool isShuffled){
+    printDeck(pDeck, isShuffled);
 }
 
 Card* getCardFromShuffled(Deck* pDeck) {

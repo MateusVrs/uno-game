@@ -110,6 +110,8 @@ class Game():
     def __init__(self):
         self.currentPlayer = 0
         self.currentCardInGame = 0
+        self.toggleSignal = 1
+        self.isGameOrdered = True
         self.isHandActive = False
         self.playersButtons = list()
         self.createDeckButton()
@@ -120,10 +122,9 @@ class Game():
         self.frameDeckButton = tk.Frame(root, name='deckBtnShow')
         self.frameDeckButton.pack(anchor='nw', padx=5, pady=5)
 
-        self.deckButton = tk.Button(
-            self.frameDeckButton, text='Show deck', height=2)
+        self.deckButton = tk.Button(self.frameDeckButton, text='Show deck', height=2)
         self.deckButton.configure(relief='groove')
-        self.deckButton['command'] = mainc.pyPrintDeck
+        self.deckButton['command'] = partial(mainc.pyPrintDeck, True)
         self.deckButton.pack()
 
     def createPlayerButtons(self):
@@ -174,6 +175,7 @@ class Game():
         if not self.isHandActive:
             self.currentPage = 1
             self.currentPlayer = ownerIndex
+            self.buttonsFromPerson = list()
             self.cardsFromPersonImg = list()
             self.cardsFromPerson = list()
 
@@ -208,6 +210,7 @@ class Game():
             skipButton = tk.Button(self.framePlayerButtons, text='Pular vez', width=15)
             skipButton['command'] = partial(self.skipPlayer, ownerIndex)
             skipButton.pack(side='right', padx=5)
+            self.buttonsFromPerson.append(skipButton)
             skipButton['state'] = 'disable'
 
             previousPageButton = tk.Button(self.framePlayerButtons, text='Página anterior', width=15)
@@ -216,12 +219,17 @@ class Game():
 
             drawButton = tk.Button(self.framePlayerButtons, text='Comprar carta', width=15)
             drawButton['command'] = partial(self.drawCard, ownerIndex, frameCards, skipButton)
+            self.buttonsFromPerson.append(drawButton)
             drawButton.pack(side='left', padx=5)
 
             self.playerCards.update()
             self.playerCards.geometry(f'{root.winfo_width()}x{270}+{int(root.winfo_x())}+{int(root.winfo_y() + root.winfo_height() - 280)}')
             self.playerCards.resizable(False, False)
             self.playerCards.deiconify()
+    
+    def disablePersonBtn(self):
+        for btn in self.buttonsFromPerson:
+            btn['state'] = 'disable'
     
     def clearCurrentCards(self):
         for index in range((self.currentPage-1)*7, self.currentPage*7):
@@ -231,11 +239,8 @@ class Game():
                 break
     
     def disableCards(self):
-        for index in range(self.currentPage*7):
-            try:
-                self.cardsFromPerson[index]['state'] = 'disable'
-            except:
-                break
+        for card in self.cardsFromPerson:
+            card['state'] = 'disable'
     
     def showPlayerCards(self):
         for index in range((self.currentPage-1)*7, self.currentPage*7):
@@ -294,9 +299,10 @@ class Game():
         self.cardInTopNumber = mainc.getCardNumberFromDeck(cardIndex)
 
         self.cardInTopColor = f'{Colors[mainc.getCardColorFromDeck(cardIndex)]}'
-        self.cardInTopReferenceColor = f'{ReferenceColors[mainc.getCardColorFromDeck(cardIndex)]}'
         if self.cardInTopColor == 'colored':
             self.cardInTopColor = 'white'
+        else:
+            self.cardInTopReferenceColor = f'{ReferenceColors[mainc.getCardColorFromDeck(cardIndex)]}'
 
         self.cardInTopImg = Image.open(
             f'images/{self.cardInTopNumber}-{self.cardInTopType}.png').resize((99, 150))
@@ -309,10 +315,19 @@ class Game():
         self.currentCardInGame += 1
 
     def nextPlayer(self, ownerIndex, cardIndex, eachCardType, eachCardNumber, eachCardReferenceColor):
-        if (eachCardReferenceColor in [self.cardInTopReferenceColor, 'colored']) or (eachCardType == self.cardInTopType and eachCardType != 'number') or (eachCardNumber == self.cardInTopNumber and eachCardType == 'number'):
-            self.currentPlayer += 1
+        if (eachCardReferenceColor in [self.cardInTopReferenceColor, 'colored']) or (eachCardType == self.cardInTopType and eachCardType != 'number') or (eachCardNumber == self.cardInTopNumber and eachCardType == self.cardInTopType == 'number'):
+            if eachCardType == 'reverse':
+                self.currentPlayer += -1 if self.isGameOrdered else 1
+                self.isGameOrdered = False if self.isGameOrdered else True
+                self.toggleSignal = 1 if self.isGameOrdered else -1
+            elif eachCardType == 'skip':
+                self.currentPlayer += 2 * (self.toggleSignal)
+            else:
+                self.currentPlayer += 1 * (self.toggleSignal)
+
             if self.currentPlayer == mainc.getNumberOfPlayers():
                 self.currentPlayer = 0
+
             self.playersButtons[ownerIndex]['state'] = 'disable' if eachCardReferenceColor != 'colored' else 'normal'
             self.playersButtons[self.currentPlayer]['state'] = 'normal' if eachCardReferenceColor != 'colored' else 'disable'
 
@@ -331,7 +346,7 @@ class Game():
         self.addCardToGame(self.currentCardInGame)
 
     def skipPlayer(self, ownerIndex):
-        self.currentPlayer += 1
+        self.currentPlayer += 1 * (self.toggleSignal)
         if self.currentPlayer == mainc.getNumberOfPlayers():
             self.currentPlayer = 0
         self.playersButtons[ownerIndex]['state'] = 'disable'
@@ -341,6 +356,7 @@ class Game():
 
     def chooseWildColor(self, ownerIndex, cardIndex):
         self.disableCards()
+        self.disablePersonBtn()
         self.frameChooseColor = tk.Frame(self.playerCards, name='frameChooseWildColor')
         self.frameChooseColor.pack(side='bottom', pady=5)
 
@@ -357,7 +373,6 @@ class Game():
         self.cardInTopReferenceColor = newRefColor
         self.playerCards.destroy()
         self.isHandActive = False
-        print(ownerIndex, self.currentPlayer)
         self.playersButtons[self.currentPlayer]['state'] = 'normal'
         self.playersButtons[ownerIndex]['state'] = 'disable'
         self.actionsAddCardToGame(ownerIndex, cardIndex)
