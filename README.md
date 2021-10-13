@@ -9,3 +9,13 @@ Até o momento a interface está muito simples e sem qualquer estilo, visto que 
 ## Cartas
 As cartas são exatamente as mesmas do Uno, assim como o mode de jogar: <br>
 <div align='center'><img src="images/uno-cards.png" width=650></div>
+
+<hr>
+
+## Jogo
+
+### Home
+<img src="images/uno-game-home.png">
+
+### Página do jogo
+<img src="images/uno-game-game.png">
