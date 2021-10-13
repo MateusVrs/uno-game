@@ -29,7 +29,7 @@ class Home():
     def windowGeometry(self):
         self.win_x, self.win_y = 1100, 450
         self.x_screen = int(root.winfo_screenwidth()/2 - self.win_x/2)
-        self.y_screen = int(root.winfo_screenheight()/2 - self.win_y/2)
+        self.y_screen = int(50)
 
     def windowConfig(self):
         root.geometry(
@@ -221,7 +221,7 @@ class Game():
 
             self.playerCards.update()
             self.playerCards.geometry(
-                f'{root.winfo_width()}x{270}+{int(root.winfo_x())}+{int(root.winfo_y() + root.winfo_height() - 100)}')
+                f'{root.winfo_width()}x{320}+{int(root.winfo_x())}+{int(root.winfo_y() + root.winfo_height() - 150)}')
             self.playerCards.resizable(False, False)
             self.playerCards.deiconify()
 
