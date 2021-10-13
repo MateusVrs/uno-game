@@ -5,8 +5,8 @@ typedef enum { zero=0, one, two, three, four, five, six, seven, eigth, nine } Nu
 
 enum Constants {
     cardsInHand = 7,
-    maxCardsInHand = 108, //maximum number of cards
     cardsInDeck = 108,
+    maxCardsInHand = 108, //maximum number of cards
     maxNumberOfHands = 14,
     normalCardsNumber = 76,
     wildCardsNumber = 32,
